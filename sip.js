@@ -484,12 +484,14 @@ function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength)
   function content(data) {
     r += data;
 
-    if(r.length >= m.headers['content-length']) {
-      m.content = r.substring(0, m.headers['content-length']);
+    var contentLength= m.headers['content-length'];
+
+    if(r.length >= contentLength) {
+      m.content = r.substring(0, contentLength);
       
       onMessage(m);
       
-      var s = r.substring(m.headers['content-length']);
+      var s = r.substring(contentLength);
       state = headers;
       r = '';
       headers(s);

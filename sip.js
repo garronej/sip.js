@@ -449,13 +449,15 @@ function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength)
     if( r.length > maxBytesHeaders ){
 
 
-      onFlood(r);
+      onFlood(r, "headers");
 
       r = '';
 
       return;
 
     }
+
+    var _rawHeaders= r;
 
     var a = r.match(/^\s*([\S\s]*?)\r\n\r\n([\S\s]*)$/);
 
@@ -467,7 +469,7 @@ function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength)
 
         if (m.headers['content-length'] > maxContentLength) {
 
-          onFlood(r);
+          onFlood(_rawHeaders + "\r\n\r\n" + r, "content");
 
           r = '';
 

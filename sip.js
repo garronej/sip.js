@@ -449,9 +449,9 @@ function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength)
 
     if( r.length > maxBytesHeaders ){
 
+      onFlood(r);
+            
       r = '';
-
-      onFlood();
 
       return;
 
@@ -467,9 +467,9 @@ function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength)
 
         if (m.headers['content-length'] > maxContentLength) {
 
+          onFlood(r);
+          
           r = '';
-
-          onFlood();
 
         }
 

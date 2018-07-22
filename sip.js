@@ -436,42 +436,45 @@ function defaultPort(proto) {
 
 function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength) {
 
-  onFlood= onFlood || function(){};
   maxBytesHeaders= maxBytesHeaders || 60480;
   maxContentLength= maxContentLength || 604800;
 
   var m;
   var r = '';
+
+  var _onFlood= function(){
+
+      onFlood.apply(null, arguments);
+
+      r= '';
+
+  };
   
   function headers(data) {
     r += data;
-
-    if( r.length > maxBytesHeaders ){
-
-
-      onFlood(r, "headers");
-
-      r = '';
-
-      return;
-
-    }
-
-    var _rawHeaders= r;
 
     var a = r.match(/^\s*([\S\s]*?)\r\n\r\n([\S\s]*)$/);
 
     if(a) {
       r = a[2];
+
+      if( !!onFlood && a[1].length > maxBytesHeaders ){
+
+        _onFlood(a.input, "headers");
+
+        return;
+
+      }
+
       m = parse(a[1]);
 
       if(m && m.headers['content-length'] !== undefined) {
 
-        if (m.headers['content-length'] > maxContentLength) {
+        if ( !!onFlood && m.headers['content-length'] > maxContentLength) {
 
-          onFlood(_rawHeaders + "\r\n\r\n" + r, "content");
+          _onFlood(a.input, "content");
 
-          r = '';
+          return;
 
         }
 
@@ -480,7 +483,12 @@ function makeStreamParser(onMessage, onFlood, maxBytesHeaders, maxContentLength)
       }
       else
         headers('');
+    }else if( !!onFlood && r.length > maxBytesHeaders){
+
+        _onFlood(r, "headers");
+
     }
+
   }
 
   function content(data) {
